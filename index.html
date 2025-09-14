@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Catalog Sản Phẩm - Demo</title>
+<meta name="description" content="Demo catalog products using HTML/CSS/JS + JSON" />
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#fff; --accent:#0b74de; --muted:#6b7280;
+    --radius:12px; --shadow: 0 6px 18px rgba(19,24,44,0.06);
+    --max-width:1100px;
+  }
+  *{box-sizing:border-box}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; margin:0; background:var(--bg); color:#111;}
+  .wrap{max-width:var(--max-width); margin:28px auto; padding:0 16px;}
+
+  /* header */
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7bc0ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+  h1{font-size:18px;margin:0}
+  .controls{display:flex;gap:8px;align-items:center}
+
+  /* search/filter */
+  .search{display:flex;gap:8px;align-items:center;background:var(--card);padding:8px;border-radius:12px;box-shadow:var(--shadow)}
+  .search input{border:0;outline:none;background:transparent;padding:8px;min-width:220px}
+  select, button{padding:8px 10px;border-radius:8px;border:1px solid #e5e7eb;background:#fff}
+  .chip{background:#fff;padding:6px 10px;border-radius:999px;border:1px solid #eee;color:var(--muted);font-size:13px}
+
+  /* grid */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
+  @media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:480px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+  .thumb{height:160px;border-radius:10px;background:#eef2ff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .title{font-weight:600;font-size:15px}
+  .price{color:var(--accent);font-weight:700}
+  .meta{font-size:13px;color:var(--muted)}
+
+  .actions{margin-top:auto;display:flex;gap:8px}
+  .btn{flex:1;padding:8px;border-radius:8px;border:0;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.ghost{background:#fff;border:1px solid #e5e7eb}
+
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.5);display:flex;align-items:center;justify-content:center;z-index:60}
+  .modal{width:min(920px,96%);background:#fff;border-radius:12px;padding:18px;box-shadow:0 20px 60px rgba(2,6,23,0.35);display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .modal .thumb{height:320px;border-radius:10px}
+  .close-x{position:absolute;right:12px;top:12px;background:#fff;border-radius:8px;padding:6px;cursor:pointer;border:1px solid #eee}
+
+  /* empty */
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  /* pagination */
+  .pager{display:flex;gap:8px;align-items:center;justify-content:center;margin:18px 0}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">SP</div>
+        <div>
+          <h1>Catalog Sản Phẩm</h1>
+          <div class="meta" style="font-size:13px;color:var(--muted)">Demo static site — JSON data</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="search" role="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input id="q" placeholder="Tìm sản phẩm, mô tả, tag..." />
+          <div class="chip" id="count">0</div>
+        </div>
+
+        <select id="category">
+          <option value="">Tất cả danh mục</option>
+        </select>
+
+        <select id="sort">
+          <option value="default">Mặc định</option>
+          <option value="price_asc">Giá: thấp → cao</option>
+          <option value="price_desc">Giá: cao → thấp</option>
+        </select>
+      </div>
+    </header>
+
+    <main>
+      <div id="grid" class="grid"></div>
+      <div id="empty" class="empty" style="display:none">Không có sản phẩm khớp.</div>
+      <div class="pager" id="pager" style="display:none"></div>
+    </main>
+  </div>
+
+  <!-- modal template -->
+  <template id="modalT">
+    <div class="modal-backdrop" id="modal" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div>
+          <div class="thumb" id="modal-thumb"></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <h2 id="modal-title"></h2>
+              <div class="meta" id="modal-cat"></div>
+              <div style="margin-top:12px" id="modal-desc"></div>
+              <div style="margin-top:12px"><span class="price" id="modal-price"></span></div>
+            </div>
+            <div><button class="close-x" id="modal-close">✕</button></div>
+          </div>
+          <div style="margin-top:18px">
+            <button class="btn primary" id="modal-buy">Thêm vào giỏ</button>
+            <button class="btn ghost" id="modal-share" style="margin-left:8px">Chia sẻ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+<script>
+/*
+  Basic product catalog
+  - loads products.json (same folder)
+  - search, category filter, sort, pagination
+*/
+
+const CONFIG = {
+  dataFile: 'products.json',
+  perPage: 12
+};
+
+let PRODUCTS = [];
+let FILTERED = [];
+let PAGE = 1;
+
+// helper
+const $ = id => document.getElementById(id);
+const formatVnd = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+
+// load JSON
+async function loadProducts(){
+  try {
+    const res = await fetch(CONFIG.dataFile);
+    if(!res.ok) throw new Error('Không load được data: ' + res.status);
+    PRODUCTS = await res.json();
+  } catch (err) {
+    console.warn('Không thể fetch products.json, dùng sample data', err);
+    PRODUCTS = sampleData();
+  }
+  initUI();
+}
+
+function sampleData(){
+  // fallback sample data
+  return [
+    {"id":1,"name":"Áo thun xanh","price":199000,"category":"Thời trang","img":"https://picsum.photos/id/100/800/600","desc":"Áo thun cotton thoáng mát dễ mặc."},
+    {"id":2,"name":"Tai nghe Bluetooth","price":499000,"category":"Điện tử","img":"https://picsum.photos/id/101/800/600","desc":"Tai nghe chống ồn, pin lâu."},
+    {"id":3,"name":"Bình giữ nhiệt 500ml","price":259000,"category":"Đồ gia dụng","img":"https://picsum.photos/id/102/800/600","desc":"Giữ nóng/lạnh tốt."}
+  ];
+}
+
+// populate categories and bind events
+function initUI(){
+  const categories = Array.from(new Set(PRODUCTS.map(p=>p.category))).sort();
+  const catEl = $('category');
+  categories.forEach(c=>{
+    const opt = document.createElement('option'); opt.value = c; opt.textContent = c; catEl.appendChild(opt);
+  });
+
+  // events
+  $('q').addEventListener('input', () => { PAGE = 1; applyFilters(); });
+  $('category').addEventListener('change', ()=> { PAGE = 1; applyFilters(); });
+  $('sort').addEventListener('change', ()=> { PAGE = 1; applyFilters(); });
+
+  // initial filter
+  applyFilters();
+}
+
+// apply filters, sort and render
+function applyFilters(){
+  const q = $('q').value.trim().toLowerCase();
+  const cat = $('category').value;
+  const sort = $('sort').value;
+
+  FILTERED = PRODUCTS.filter(p=>{
+    if(cat && p.category !== cat) return false;
+    if(!q) return true;
+    return (p.name + ' ' + (p.desc||'') + ' ' + (p.category||'')).toLowerCase().includes(q);
+  });
+
+  if(sort === 'price_asc') FILTERED.sort((a,b)=>a.price - b.price);
+  else if(sort === 'price_desc') FILTERED.sort((a,b)=>b.price - a.price);
+
+  renderGrid();
+}
+
+// render grid with pagination
+function renderGrid(){
+  const grid = $('grid');
+  const empty = $('empty');
+  const pager = $('pager');
+  grid.innerHTML = '';
+
+  const total = FILTERED.length;
+  $('count').textContent = total;
+
+  if(total === 0){
+    empty.style.display = 'block';
+    pager.style.display = 'none';
+    return;
+  } else {
+    empty.style.display = 'none';
+  }
+
+  const start = (PAGE-1) * CONFIG.perPage;
+  const pageItems = FILTERED.slice(start, start + CONFIG.perPage);
+
+  pageItems.forEach(p => {
+    const div = document.createElement('div'); div.className='card';
+    div.innerHTML = `
+      <div class="thumb"><img loading="lazy" src="${p.img}" alt="${p.name}"></div>
+      <div class="title">${p.name}</div>
+      <div class="meta">${p.category}</div>
+      <div class="price">${formatVnd(p.price)}</div>
+      <div class="actions">
+        <button class="btn primary" data-id="${p.id}" onclick="openModal(${p.id})">Xem</button>
+        <button class="btn ghost" onclick="addCart(${p.id})">Thêm</button>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+
+  // pager
+  const pages = Math.ceil(total / CONFIG.perPage);
+  if(pages > 1){
+    pager.style.display = 'flex';
+    pager.innerHTML = '';
+    for(let i=1;i<=pages;i++){
+      const b = document.createElement('button');
+      b.textContent = i;
+      b.className = 'chip';
+      if(i===PAGE) { b.style.borderColor = 'var(--accent)'; b.style.color = 'var(--accent)'; }
+      b.onclick = () => { PAGE = i; renderGrid(); window.scrollTo({top:0,behavior:'smooth'}) };
+      pager.appendChild(b);
+    }
+  } else pager.style.display = 'none';
+}
+
+// modal
+function openModal(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  const tpl = document.getElementById('modalT').content.cloneNode(true);
+  const modal = tpl.querySelector('#modal');
+  tpl.querySelector('#modal-title').textContent = p.name;
+  tpl.querySelector('#modal-cat').textContent = p.category;
+  tpl.querySelector('#modal-desc').innerHTML = `<p style="color:var(--muted)">${p.desc||''}</p>`;
+  tpl.querySelector('#modal-price').textContent = formatVnd(p.price);
+  tpl.querySelector('#modal-thumb').innerHTML = `<img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover">`;
+
+  tpl.querySelector('#modal-close').addEventListener('click', ()=> document.body.removeChild(modal));
+  tpl.querySelector('#modal-buy').addEventListener('click', ()=>{
+    addCart(id);
+    alert('Đã thêm vào giỏ');
+  });
+
+  document.body.appendChild(modal);
+}
+
+// cart (simple)
+let CART = [];
+function addCart(id){
+  CART.push(id);
+  $('count').textContent = FILTERED.length + ' • ' + CART.length;
+}
+
+// kick off
+loadProducts();
+</script>
+</body>
+</html>
