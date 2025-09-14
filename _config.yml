@@ -1,0 +1,8 @@
+title: DiepXuan Shop
+description: Chan Ga Goi Dem Cao Cap
+baseurl: ""
+url: "http://localhost:4000"
+
+collections:
+  products:
+    output: true

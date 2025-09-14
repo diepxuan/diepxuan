@@ -1,0 +1,16 @@
+[
+    {
+        "id": "p1",
+        "name": "Sản phẩm A",
+        "category": "cat1",
+        "price": 100000,
+        "description": "Mô tả sản phẩm A"
+    },
+    {
+        "id": "p2",
+        "name": "Sản phẩm B",
+        "category": "cat2",
+        "price": 200000,
+        "description": "Mô tả sản phẩm B"
+    }
+]

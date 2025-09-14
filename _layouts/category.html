@@ -1,0 +1,10 @@
+---
+layout: default
+---
+<h2>Danh mục</h2>
+<ul>
+    {% assign cats = site.data.products | map: "category" | uniq %}
+    {% for c in cats %}
+    <li><a href="{{ '/catalog?cat=' | append: c }}">{{ c }}</a></li>
+    {% endfor %}
+</ul>

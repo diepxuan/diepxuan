@@ -1,0 +1,23 @@
+#version: '3'
+services:
+  jekyll:
+    image: jekyll/jekyll:latest
+    container_name: jekyll-site
+    command: bundle install && jekyll serve --watch --force_polling --host 0.0.0.0 --livereload
+    # command: jekyll serve --watch --force_polling --livereload
+    ports:
+      - "4000:4000"
+      - "35729:35729" # livereload
+    volumes:
+      - .:/srv/jekyll
+      - jekyll-cache:/srv/jekyll/.jekyll-cache # tránh lỗi permission
+      - jekyll-bundle:/usr/local/bundle # giữ gem cache
+      - jekyll-site:/srv/jekyll/_site # giữ site build
+    environment:
+      - JEKYLL_ENV=development
+    restart: unless-stopped
+
+volumes:
+  jekyll-cache:
+  jekyll-bundle:
+  jekyll-site:

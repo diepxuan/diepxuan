@@ -1,0 +1,13 @@
+---
+layout: default
+---
+<h2>Tất cả sản phẩm</h2>
+<ul>
+    {% for product in site.data.products %}
+    <li>
+        <a href="{{ '/product?id=' | append: product.id | relative_url }}">
+            {{ product.name }} - {{ product.price }}₫
+        </a>
+    </li>
+    {% endfor %}
+</ul>
