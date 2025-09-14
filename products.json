@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Áo thun xanh",
+    "price": 199000,
+    "category": "Thời trang",
+    "img": "https://picsum.photos/id/100/800/600",
+    "desc": "Áo thun cotton thoáng mát dễ mặc."
+  },
+  {
+    "id": 2,
+    "name": "Tai nghe Bluetooth",
+    "price": 499000,
+    "category": "Điện tử",
+    "img": "https://picsum.photos/id/101/800/600",
+    "desc": "Tai nghe chống ồn, pin lâu."
+  },
+  {
+    "id": 3,
+    "name": "Bình giữ nhiệt 500ml",
+    "price": 259000,
+    "category": "Đồ gia dụng",
+    "img": "https://picsum.photos/id/102/800/600",
+    "desc": "Giữ nóng/lạnh tốt."
+  },
+  {
+    "id": 4,
+    "name": "Máy pha cà phê",
+    "price": 2490000,
+    "category": "Đồ gia dụng",
+    "img": "https://picsum.photos/id/103/800/600",
+    "desc": "Máy pha tại nhà, nhỏ gọn."
+  },
+  {
+    "id": 5,
+    "name": "Áo khoác denim",
+    "price": 499000,
+    "category": "Thời trang",
+    "img": "https://picsum.photos/id/104/800/600",
+    "desc": "Phong cách, bền."
+  }
+]
